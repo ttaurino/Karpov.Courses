@@ -1,2 +1,2 @@
 # karpov.courses
-Домашние задания по курсу "Аналитик данных" от Анатолия Карпова https://karpov.courses/analytics
+Домашние задания по курсу "Аналитик данных" https://karpov.courses/analytics
