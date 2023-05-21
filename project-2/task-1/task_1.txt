@@ -1,0 +1,73 @@
+
+Задание 1. Посчитать процентное изменение количества клиентов, совершивших покупку, месяц-к-месяцу.
+
+SELECT
+	order_month,
+	(total_clients / LAG (total_clients, 1) OVER (ORDER BY order_month) -1) * 100 as difference
+FROM (
+	SELECT COUNT (DISTINCT client_id) as total_clients,
+	DATE_TRUNC ('month', TO_DATE (order_date, 'YYYY-MM-DD')) as order_month
+    FROM orders_data
+    GROUP BY order_month
+	) as query
+ORDER BY order_month
+
+
+Задание 2. Вывести сумму GMV с нарастающим итогом по дням.
+
+SELECT 
+	TO_DATE (fact_date, 'YYY-MM-DD') as date,
+	gmv,
+	SUM (gmv) OVER (ORDER BY fact_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as sum_gmv
+FROM gmv_data
+ORDER BY date
+
+
+Задание 3. Получить время отклика на каждое письмо (идентифицируется по полю mail_id), отправленное пользователем mr_employee@ozon.ru.
+
+SELECT 
+	d1_id as mail_id,
+	mail_to, 
+	subject as mail_subject, 
+	sent, 
+	response_date, 
+	TO_TIMESTAMP(response_date, 'YYYY-MM-DD HH24:MI:ss') - TO_TIMESTAMP(sent,'YYYY-MM-DD HH24:MI:ss') as response_delay
+FROM (
+	SELECT *
+    FROM (
+		SELECT 
+			d2_id,
+			d1_id,
+			subject,
+			sent,
+			response_date,
+			mail_to,
+			ROW_NUMBER() OVER(PARTITION BY d2_id ORDER BY d1_id DESC) AS mail_rank
+		FROM (
+			SELECT 
+				d1.mail_id as d1_id,
+				d1.mail_subject as subject,
+				d1.timestamp_1 as sent, 
+				d2.mail_id as d2_id,
+				d2.timestamp_1 as response_date,
+				d1.mail_from as mail_from,
+				d1.mail_to as mail_to
+			FROM maildata as d1
+			JOIN maildata as d2 
+			ON d1.mail_subject = d2.mail_subject
+			WHERE d1.mail_from = 'mr_employee@ozon.ru'
+				AND d1.mail_id < d2.mail_id
+				AND d2.mail_from != 'mr_employee@ozon.ru'
+			) AS query
+		) AS subquery
+    WHERE mail_rank = 1
+	) AS sub_subquery
+
+
+Задание 4. Вывести id сотрудников с разницей в заработной плате в пределах 5000 рублей.
+
+SELECT d1.employee_id
+FROM employee_data d1 
+CROSS JOIN employee_data d2 
+WHERE ABS (d1.salary_rub - d2.salary_rub) <= 5000
+AND d1.employee_id != d2.employee_id
