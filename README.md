@@ -1,2 +1,2 @@
-# karpov.courses
-Домашние задания по курсу "Аналитик данных" https://karpov.courses/analytics
+# Проекты и задания, выполненные на обучающем курсе "Аналитик данных" в Karpov.Courses
+https://karpov.courses/analytics
